@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gerador de QR Codes Sabinão10</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .qr-code {
+            display: inline-block;
+            margin: 10px;
+        }
+        .print-only {
+            display: none; /* Oculta por padrão para evitar impressão automática */
+        }
+        @media print {
+            .print-only {
+                display: block; /* Mostra apenas durante a impressão */
+            }
+            body {
+                text-align: left; /* Alinha o conteúdo à esquerda para impressão */
+            }
+            .no-print {
+                display: none; /* Esconde conteúdo não relevante para impressão */
+            }
+        }
+        .loader {
+            border: 8px solid #f3f3f3; /* Cor do círculo */
+            border-top: 8px solid #3498db; /* Cor do círculo azul */
+            border-radius: 50%; /* Forma do círculo */
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite; /* Animação de rotação */
+            margin: 20px auto; /* Centraliza o círculo de carregamento */
+            display: none; /* Oculta por padrão */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .qr-code-container {
+            margin-top: 20px;
+        }
+        .separator {
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="no-print">Gerador de QR Codes Sabinão10</h1>
+    <div id="input-form" class="no-print">
+        <form onsubmit="event.preventDefault(); gerar();">
+            <label for="inicio">Início: </label>
+            <input type="number" id="inicio" placeholder="1" required />
+            <label for="fim">Fim: </label>
+            <input type="number" id="fim" placeholder="10" required />
+            <br><br>
+            <label for="altura_mm">Altura (mm): </label>
+            <input type="number" id="altura_mm" placeholder="50" required />
+            <label for="largura_mm">Largura (mm): </label>
+            <input type="number" id="largura_mm" placeholder="50" required />
+            <br><br>
+            <label for="distancia_entre_mm">Distância entre (mm): </label>
+            <input type="number" id="distancia_entre_mm" placeholder="10" required />
+            <br><br>
+            <label for="casas_decimais">Casas Decimais: </label>
+            <input type="number" id="casas_decimais" placeholder="3" min="0" max="19" required />
+            <br><br>
+            <button type="submit">Gerar QR Codes</button>
+            <button type="button" onclick="limpar()">Limpar QR Codes</button>
+            <button class="no-print" onclick="window.print()">Imprimir</button>
+            <div class="loader" id="loader"></div> <!-- Indicador de carregamento -->
+        </form>
+    </div>
+
+    <hr class="separator no-print">
+
+    <div id="qrcodes" class="qr-code-container no-print"></div>
+
+    <!-- Container para impressão -->
+    <div class="print-only" id="print-container"></div>
+
+    <script>
+        let qrCodesGerados = []; // Array para armazenar os QR codes gerados
+
+        function gerar() {
+            const inicio = parseInt(document.getElementById('inicio').value);
+            const fim = parseInt(document.getElementById('fim').value);
+            const altura_mm = parseFloat(document.getElementById('altura_mm').value);
+            const largura_mm = parseFloat(document.getElementById('largura_mm').value);
+            const distancia_entre_mm = parseFloat(document.getElementById('distancia_entre_mm').value);
+            const casas_decimais = parseInt(document.getElementById('casas_decimais').value);
+            const densidade_pixels_por_mm = 3.7795; // Aproximadamente 96 DPI
+
+            const altura_pixels = Math.round(altura_mm * densidade_pixels_por_mm);
+            const largura_pixels = Math.round(largura_mm * densidade_pixels_por_mm);
+            const distancia_entre_pixels = Math.round(distancia_entre_mm * densidade_pixels_por_mm);
+
+            const container = document.getElementById('qrcodes');
+            container.innerHTML = '';
+            const printContainer = document.getElementById('print-container');
+            printContainer.innerHTML = '';
+
+            // Mostrar indicador de carregamento
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block';
+
+            setTimeout(() => {
+                qrCodesGerados = []; // Limpa o array de QR codes gerados
+
+                for (let i = inicio; i <= fim; i++) {
+                    const numero = i.toString().padStart(casas_decimais, '0');
+                    
+                    const div = document.createElement('div');
+                    div.className = 'qr-code';
+                    container.appendChild(div);
+
+                    const qrCode = new QRCode(div, {
+                        text: numero,
+                        width: largura_pixels,
+                        height: altura_pixels
+                    });
+
+                    qrCodesGerados.push(qrCode); // Adiciona o QR code ao array
+
+                    const printDiv = document.createElement('div');
+                    printDiv.className = 'qr-code';
+                    printContainer.appendChild(printDiv);
+
+                    const qrCodePrint = new QRCode(printDiv, {
+                        text: numero,
+                        width: largura_pixels,
+                        height: altura_pixels
+                    });
+
+                    div.style.marginRight = `${distancia_entre_pixels}px`;
+                    printDiv.style.marginBottom = `${distancia_entre_pixels}px`;
+                }
+
+                // Esconder indicador de carregamento após a geração
+                loader.style.display = 'none';
+            }, 500); // Tempo de espera simulado (0.5 segundos)
+        }
+
+        function limpar() {
+            // Limpa os QR codes gerados
+            qrCodesGerados.forEach(qrCode => qrCode.clear());
+
+            // Limpa os containers HTML
+            document.getElementById('qrcodes').innerHTML = '';
+            document.getElementById('print-container').innerHTML = '';
+
+            // Limpa o array de QR codes gerados
+            qrCodesGerados = [];
+        }
+    </script>
+</body>
+</html>
